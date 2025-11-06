@@ -26,13 +26,14 @@ import com.bacer.notesapp.data.SubjectEntity
 import kotlinx.coroutines.flow.StateFlow
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.Alignment
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SubjectsScreen(
     subjects: StateFlow<List<SubjectEntity>>,
     onAddSubject: (String) -> Unit,
-    onSubjectClick: (String) -> Unit,
+    onSubjectClick: (Int) -> Unit,
     onDeleteSubject: (SubjectEntity) -> Unit,
     nameError: StateFlow<Boolean>,
     onClearNameError: () -> Unit
@@ -46,6 +47,10 @@ fun SubjectsScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
     var selectedSubject by remember { mutableStateOf<SubjectEntity?>(null) }
     // -----
+
+    // Expand subject variables
+    var expandedSubjectId by remember { mutableStateOf<Int?>(null) }
+    // ----- Expand subject variables
 
     // Screen
     AppGradientBackground {
@@ -66,7 +71,7 @@ fun SubjectsScreen(
                     containerColor = Color.White.copy(alpha = 0.15f),
                     contentColor = Color.White,
 
-                    onClick = { showAddDialog = true } // Add logic below
+                    onClick = { showAddDialog = true }
                 ) {
                     Icon(imageVector = Icons.Default.Add, contentDescription = "Add subject")
                 }
@@ -84,13 +89,19 @@ fun SubjectsScreen(
             ) {
 
                 // Title
-                Text(
-                    text = "Your Subjects",
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 20.dp),
-                    color = Color.White
-                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 20.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Your Subjects",
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
                 // ----- Title
 
                 val subjectList = subjects.collectAsState().value
@@ -105,8 +116,10 @@ fun SubjectsScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .pointerInput(subject.id) {
-                                    detectTapGestures( // Delete logic below
-                                        onTap = { onSubjectClick(subject.name) },
+                                    detectTapGestures(
+                                        onTap = {
+                                            expandedSubjectId = if (expandedSubjectId == subject.id) null else subject.id
+                                            onSubjectClick(subject.id) },
                                         onLongPress = {
                                             selectedSubject = subject
                                             showDeleteDialog = true
@@ -117,14 +130,60 @@ fun SubjectsScreen(
                             border = BorderStroke(2.dp, Color.White.copy(alpha = 0.35f)),
                             shape = MaterialTheme.shapes.medium,
                         ) {
-                            Text(
-                                text = subject.name,
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Medium,
-                                modifier = Modifier.padding(18.dp),
-                                color = Color.White
-                            )
+
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(18.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = subject.name,
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = Color.White
+                                )
+                            }
                         }
+
+                        // Expanded subject cards
+                        if (expandedSubjectId == subject.id) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(start = 14.dp, end = 14.dp, top = 6.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                listOf("Notes", "Grades", "AI Assistant").forEach { label ->
+                                    Card(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(36.dp)
+                                            .pointerInput(subject.id) {
+                                                detectTapGestures {
+                                                    // Expanded subject buttons onClick
+                                                }
+                                            },
+                                        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.30f)),
+                                        border = BorderStroke(2.dp, Color.White.copy(alpha = 0.70f)),
+                                        shape = MaterialTheme.shapes.medium,
+                                    ) {
+                                        Box(
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                text = label,
+                                                fontSize = 14.sp,
+                                                color = Color.White
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        // ----- Expanded subject cards
+
                         // ----- Subject card
 
                     }
