@@ -34,7 +34,9 @@ class MainActivity : ComponentActivity() {
                     subjects = viewModel.subjects,
                     onAddSubject = { viewModel.addSubject(it) },
                     onSubjectClick = {},
-                    onDeleteSubject = { viewModel.deleteSubject(it)}
+                    onDeleteSubject = { viewModel.deleteSubject(it)},
+                    nameError = viewModel.nameError,
+                    onClearNameError = { viewModel.clearNameError() }
                 )
             }
         }

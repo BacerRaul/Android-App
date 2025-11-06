@@ -33,7 +33,9 @@ fun SubjectsScreen(
     subjects: StateFlow<List<SubjectEntity>>,
     onAddSubject: (String) -> Unit,
     onSubjectClick: (String) -> Unit,
-    onDeleteSubject: (SubjectEntity) -> Unit
+    onDeleteSubject: (SubjectEntity) -> Unit,
+    nameError: StateFlow<Boolean>,
+    onClearNameError: () -> Unit
 ) {
     // Add subject variables
     var showAddDialog by remember { mutableStateOf(false) }
@@ -153,6 +155,21 @@ fun SubjectsScreen(
                             newSubjectName = ""
                             showAddDialog = false
                         }) { Text("Cancel") }
+                    }
+                )
+            }
+
+            val isDuplicate = nameError.collectAsState().value
+
+            if (isDuplicate) {
+                AlertDialog(
+                    onDismissRequest = { onClearNameError() },
+                    title = { Text("Invalid subject name") },
+                    text = { Text("This subject name already exists or is empty.") },
+                    confirmButton = {
+                        TextButton(onClick = { onClearNameError() }) {
+                            Text("OK")
+                        }
                     }
                 )
             }
