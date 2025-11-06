@@ -1,0 +1,202 @@
+package com.bacer.notesapp.ui.subjects
+
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.bacer.notesapp.ui.theme.AppGradientBackground
+import androidx.compose.ui.graphics.Color
+import com.bacer.notesapp.data.SubjectEntity
+import kotlinx.coroutines.flow.StateFlow
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SubjectsScreen(
+    subjects: StateFlow<List<SubjectEntity>>,
+    onAddSubject: (String) -> Unit,
+    onSubjectClick: (String) -> Unit,
+    onDeleteSubject: (SubjectEntity) -> Unit
+) {
+    // Add subject variables
+    var showAddDialog by remember { mutableStateOf(false) }
+    var newSubjectName by remember { mutableStateOf("") }
+    // -----
+
+    // Delete subject variables
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var selectedSubject by remember { mutableStateOf<SubjectEntity?>(null) }
+    // -----
+
+    // Screen
+    AppGradientBackground {
+        Scaffold(
+            containerColor = Color.Transparent, // So the default color of the screen is see-through, so the new background color can be seen
+
+            // Add button
+            floatingActionButton = {
+                FloatingActionButton(
+                    modifier = Modifier
+                        .size(65.dp)
+                        .border(
+                            width = 2.dp,
+                            color = Color.White.copy(alpha = 0.35f),
+                            shape = CircleShape
+                        )
+                        .clip(CircleShape),
+                    containerColor = Color.White.copy(alpha = 0.15f),
+                    contentColor = Color.White,
+
+                    onClick = { showAddDialog = true } // Add logic below
+                ) {
+                    Icon(imageVector = Icons.Default.Add, contentDescription = "Add subject")
+                }
+            }
+            // ----- Add button
+
+        ) { padding ->
+
+            // Screen
+            Column(
+                modifier = Modifier
+                    .padding(padding)
+                    .padding(20.dp)
+                    .fillMaxSize()
+            ) {
+
+                // Title
+                Text(
+                    text = "Your Subjects",
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 20.dp),
+                    color = Color.White
+                )
+                // ----- Title
+
+                val subjectList = subjects.collectAsState().value
+
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(subjectList, key = { it.id }) { subject ->
+
+                        // Subject card
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .pointerInput(subject.id) {
+                                    detectTapGestures( // Delete logic below
+                                        onTap = { onSubjectClick(subject.name) },
+                                        onLongPress = {
+                                            selectedSubject = subject
+                                            showDeleteDialog = true
+                                        }
+                                    )
+                                },
+                            colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.15f)),
+                            border = BorderStroke(2.dp, Color.White.copy(alpha = 0.35f)),
+                            shape = MaterialTheme.shapes.medium,
+                        ) {
+                            Text(
+                                text = subject.name,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Medium,
+                                modifier = Modifier.padding(18.dp),
+                                color = Color.White
+                            )
+                        }
+                        // ----- Subject card
+
+                    }
+                }
+            }
+
+            // Add subject functionality
+            if (showAddDialog) {
+                AlertDialog(
+                    onDismissRequest = { showAddDialog = false },
+                    title = { Text("Add Subject") },
+                    text = {
+                        TextField(
+                            value = newSubjectName,
+                            onValueChange = { newSubjectName = it },
+                            placeholder = { Text("Subject name") }
+                        )
+                    },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            onAddSubject(newSubjectName)
+                            newSubjectName = ""
+                            showAddDialog = false
+                        }) { Text("Add") }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = {
+                            newSubjectName = ""
+                            showAddDialog = false
+                        }) { Text("Cancel") }
+                    }
+                )
+            }
+            // ----- Add subject functionality
+
+            // Delete subject functionality
+            if (showDeleteDialog && selectedSubject != null) {
+                AlertDialog(
+                    onDismissRequest = {
+                        showDeleteDialog = false
+                        selectedSubject = null
+                    },
+                    title = { Text("Delete Subject") },
+                    text = { Text("Are you sure you want to delete \"${selectedSubject!!.name}\"?") },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                onDeleteSubject(selectedSubject!!)
+                                showDeleteDialog = false
+                                selectedSubject = null
+                            },
+                            colors = ButtonDefaults.textButtonColors(
+                                contentColor = MaterialTheme.colorScheme.error
+                            )
+                        ) {
+                            Text("Delete")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = {
+                                showDeleteDialog = false
+                                selectedSubject = null
+                            }
+                        ) {
+                            Text("Cancel")
+                        }
+                    }
+                )
+            }
+            // ----- Delete subject functionality
+
+        }
+    }
+    // ----- Screen
+
+}
