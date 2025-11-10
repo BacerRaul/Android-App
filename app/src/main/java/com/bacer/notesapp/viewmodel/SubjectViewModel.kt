@@ -7,13 +7,15 @@ import com.bacer.notesapp.data.SubjectEntity
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.Flow
+
 
 class SubjectViewModel(private val repo: SubjectRepository) : ViewModel() {
 
+    // Load subjects
     private val _subjects = MutableStateFlow<List<SubjectEntity>>(emptyList())
     val subjects: StateFlow<List<SubjectEntity>> = _subjects
 
-    // Load subjects
     fun loadSubjects() {
         viewModelScope.launch {
             _subjects.value = repo.getSubjects()
@@ -64,5 +66,11 @@ class SubjectViewModel(private val repo: SubjectRepository) : ViewModel() {
         }
     }
     // ----- Delete subject
+
+    // Get subject by ID
+    fun getSubjectById(id: Int): Flow<SubjectEntity?> {
+        return repo.getSubjectById(id)
+    }
+    // ----- Get subject by ID
 
 }

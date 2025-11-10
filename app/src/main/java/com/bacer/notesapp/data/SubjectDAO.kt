@@ -1,6 +1,7 @@
 package com.bacer.notesapp.data
 
 import androidx.room.*
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface SubjectDao {
@@ -13,4 +14,8 @@ interface SubjectDao {
 
     @Delete
     suspend fun deleteSubject(subject: SubjectEntity)
+
+    @Query("SELECT * FROM subjects WHERE id = :id")
+    fun getSubjectById(id: Int): Flow<SubjectEntity?>
+
 }

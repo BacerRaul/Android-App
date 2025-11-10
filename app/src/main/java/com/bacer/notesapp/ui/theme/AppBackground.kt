@@ -14,7 +14,7 @@ import com.bacer.notesapp.R // Generated automatically
 
 
 @Composable
-fun AppGradientBackground(content: @Composable () -> Unit) {
+fun SubjectGradientBackground(content: @Composable () -> Unit) {
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -37,6 +37,7 @@ fun AppGradientBackground(content: @Composable () -> Unit) {
                     )
                 )
         )
+        // ----- Gradient
 
         // Image
         Image(
@@ -46,6 +47,47 @@ fun AppGradientBackground(content: @Composable () -> Unit) {
             contentScale = ContentScale.Crop,
             alpha = 0.12f // Transparency
         )
+        // ----- Image
+
+        content()
+    }
+}
+
+@Composable
+fun GradeGradientBackground(content: @Composable () -> Unit) {
+    Box(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        // Gradient
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            // Top
+                            Color(0xFF28003D),
+                            Color(0xFF4A007A),
+                            Color(0xFF6F00B3),
+                            Color(0xFF6F00B3),
+                            Color(0xFF4A007A),
+                            Color(0xFF28003D)
+                            // Bottom
+                        )
+                    )
+                )
+        )
+        // ----- Gradient
+
+        // Image
+        Image(
+            painter = painterResource(id = R.drawable.lines),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop,
+            alpha = 0.12f // Transparency
+        )
+        // ----- Image
 
         content()
     }

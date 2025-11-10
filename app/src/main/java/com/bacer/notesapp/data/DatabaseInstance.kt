@@ -14,7 +14,9 @@ object DatabaseInstance {
                 context.applicationContext,
                 AppDatabase::class.java,
                 "subjects_database"
-            ).build().also {
+            )
+                .fallbackToDestructiveMigration(true)
+                .build().also {
                 INSTANCE = it
             }
         }

@@ -20,23 +20,24 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.bacer.notesapp.ui.theme.AppGradientBackground
 import androidx.compose.ui.graphics.Color
 import com.bacer.notesapp.data.SubjectEntity
 import kotlinx.coroutines.flow.StateFlow
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.size
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.Alignment
+import com.bacer.notesapp.ui.theme.SubjectGradientBackground
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SubjectsScreen(
+fun SubjectScreen(
     subjects: StateFlow<List<SubjectEntity>>,
     onAddSubject: (String) -> Unit,
-    onSubjectClick: (Int) -> Unit,
     onDeleteSubject: (SubjectEntity) -> Unit,
     nameError: StateFlow<Boolean>,
-    onClearNameError: () -> Unit
+    onClearNameError: () -> Unit,
+    onGradesClick: (Int) -> Unit
 ) {
     // Add subject variables
     var showAddDialog by remember { mutableStateOf(false) }
@@ -53,34 +54,37 @@ fun SubjectsScreen(
     // ----- Expand subject variables
 
     // Screen
-    AppGradientBackground {
+    SubjectGradientBackground {
         Scaffold(
             containerColor = Color.Transparent, // So the default color of the screen is see-through, so the new background color can be seen
 
-            // Add button
+            // Add subject button
             floatingActionButton = {
-                FloatingActionButton(
-                    modifier = Modifier
-                        .size(65.dp)
-                        .border(
-                            width = 2.dp,
-                            color = Color.White.copy(alpha = 0.35f),
-                            shape = CircleShape
-                        )
-                        .clip(CircleShape),
-                    containerColor = Color.White.copy(alpha = 0.15f),
-                    contentColor = Color.White,
+                Box(modifier = Modifier.fillMaxSize()) {
+                    FloatingActionButton(
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(end = 30.dp, bottom = 20.dp)
+                            .size(65.dp)
+                            .border(
+                                width = 2.dp,
+                                color = Color.White.copy(alpha = 0.35f),
+                                shape = CircleShape
+                            )
+                            .clip(CircleShape),
+                        containerColor = Color.White.copy(alpha = 0.15f),
+                        contentColor = Color.White,
 
-                    onClick = { showAddDialog = true }
-                ) {
-                    Icon(imageVector = Icons.Default.Add, contentDescription = "Add subject")
+                        onClick = { showAddDialog = true }
+                    ) {
+                        Icon(imageVector = Icons.Default.Add, contentDescription = "Add subject")
+                    }
                 }
             }
-            // ----- Add button
+            // ----- Add subject button
 
         ) { padding ->
 
-            // Screen
             Column(
                 modifier = Modifier
                     .padding(padding)
@@ -106,6 +110,7 @@ fun SubjectsScreen(
 
                 val subjectList = subjects.collectAsState().value
 
+                // Subjects list
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
@@ -117,9 +122,7 @@ fun SubjectsScreen(
                                 .fillMaxWidth()
                                 .pointerInput(subject.id) {
                                     detectTapGestures(
-                                        onTap = {
-                                            expandedSubjectId = if (expandedSubjectId == subject.id) null else subject.id
-                                            onSubjectClick(subject.id) },
+                                        onTap = { expandedSubjectId = if (expandedSubjectId == subject.id) null else subject.id },
                                         onLongPress = {
                                             selectedSubject = subject
                                             showDeleteDialog = true
@@ -161,7 +164,9 @@ fun SubjectsScreen(
                                             .height(36.dp)
                                             .pointerInput(subject.id) {
                                                 detectTapGestures {
-                                                    // Expanded subject buttons onClick
+                                                    when (label) {
+                                                        "Grades" -> onGradesClick(subject.id)
+                                                    }
                                                 }
                                             },
                                         colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.30f)),
@@ -188,6 +193,8 @@ fun SubjectsScreen(
 
                     }
                 }
+                // ----- Subjects list
+
             }
 
             // Add subject functionality
