@@ -15,8 +15,4 @@ class GradeRepository(private val dao: GradeDao) {
     suspend fun deleteGrade(grade: GradeEntity) {
         dao.deleteGrade(grade)
     }
-
-    fun getGradesFlow(subjectId: Int): Flow<List<GradeEntity>> {
-        return dao.getGradesFlow(subjectId)
-    }
 }

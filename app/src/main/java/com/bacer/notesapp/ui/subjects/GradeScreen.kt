@@ -10,54 +10,56 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.bacer.notesapp.ui.theme.GradeGradientBackground
 import androidx.compose.ui.graphics.Color
 import com.bacer.notesapp.data.GradeEntity
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.input.pointer.pointerInput
+import kotlinx.coroutines.flow.StateFlow
 import androidx.compose.foundation.gestures.detectTapGestures
-import kotlinx.coroutines.flow.collectLatest
-import com.bacer.notesapp.viewmodel.GradeViewModel
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.TextField
-import com.bacer.notesapp.viewmodel.SubjectViewModel
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.Alignment
+import com.bacer.notesapp.ui.theme.GradeGradientBackground
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GradeScreen(
-    subjectId: Int,
+    grades: StateFlow<List<GradeEntity>>,
+    subjectName: String,
     onBack: () -> Unit,
-    viewModel: SubjectViewModel
+    onAddGrade: (String, Double) -> Unit,
+    onDeleteGrade: (GradeEntity) -> Unit,
+    nameError: StateFlow<Boolean>,
+    onClearNameError: () -> Unit
 ) {
-    val subject by viewModel.getSubjectById(subjectId).collectAsState(initial = null)
+    // Add grade variables
+    var showAddDialog by remember { mutableStateOf(false) }
+    var newGradeName by remember { mutableStateOf("") }
+    var newGradeValueText by remember { mutableStateOf("") }
+    // -----
 
-    val grades = listOf(
-        "Test 1: 8.50",
-        "Assignment: 9.20",
-        "Midterm: 7.90",
-        "Project: 10",
-        "Final Exam: 9.75"
-    )
+    // Delete grade variables
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var selectedGrade by remember { mutableStateOf<GradeEntity?>(null) }
+    // -----
 
     // Screen
     GradeGradientBackground {
         Scaffold(
-            containerColor = Color.Transparent,
+            containerColor = Color.Transparent, // So the default color of the screen is see-through, so the new background color can be seen
 
+            // Back + Add grade buttons
             floatingActionButton = {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                ) {
-
+                Box(modifier = Modifier.fillMaxSize()) {
                     // Back button
                     FloatingActionButton(
                         modifier = Modifier
@@ -72,15 +74,11 @@ fun GradeScreen(
                             .clip(CircleShape),
                         containerColor = Color.White.copy(alpha = 0.15f),
                         contentColor = Color.White,
-
-                        onClick = { onBack() }
-                    )
-
-                    {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        onClick = onBack
+                    ) {
+                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")
                     }
-                    // ----- Back button
-
+                    // -----
                     // Add grade button
                     FloatingActionButton(
                         modifier = Modifier
@@ -95,16 +93,14 @@ fun GradeScreen(
                             .clip(CircleShape),
                         containerColor = Color.White.copy(alpha = 0.15f),
                         contentColor = Color.White,
-                        onClick = {
-                            // TODO: open AddGrade dialog (we add later after entity + viewmodel)
-                        }
+                        onClick = { showAddDialog = true }
                     ) {
-                        Icon(Icons.Default.Add, contentDescription = "Add grade")
+                        Icon(imageVector = Icons.Default.Add, contentDescription = "Add grade")
                     }
                     // ----- Add grade button
-
                 }
             }
+            // ----- Back + Add grade buttons
 
         ) { padding ->
 
@@ -123,7 +119,7 @@ fun GradeScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = subject?.name ?: "Grades",
+                        text = subjectName,
                         fontSize = 28.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
@@ -131,37 +127,160 @@ fun GradeScreen(
                 }
                 // ----- Title
 
+                val gradeList = grades.collectAsState().value
+
                 // Grades list
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(grades) { grade ->
+                    items(gradeList, key = { it.id }) { grade ->
+
+                        // Grade card
                         Card(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .pointerInput(grade.id) {
+                                    detectTapGestures(
+                                        onLongPress = {
+                                            selectedGrade = grade
+                                            showDeleteDialog = true
+                                        }
+                                    )
+                                },
                             colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.15f)),
                             border = BorderStroke(2.dp, Color.White.copy(alpha = 0.35f)),
-                            shape = MaterialTheme.shapes.medium
+                            shape = MaterialTheme.shapes.medium,
                         ) {
+
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(18.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text(
-                                    text = grade,
-                                    fontSize = 20.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = Color.White
-                                )
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text(
+                                        text = grade.name,
+                                        fontSize = 20.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = Color.White
+                                    )
+                                    Text(
+                                        text = grade.value.toString(),
+                                        fontSize = 16.sp,
+                                        color = Color.White
+                                    )
+                                }
                             }
                         }
+                        // ----- Grade card
+
                     }
                 }
-                // Grades list
+                // ----- Grades list
 
             }
+
+            // Add grade functionality
+            if (showAddDialog) {
+                AlertDialog(
+                    onDismissRequest = {
+                        showAddDialog = false
+                        newGradeName = ""
+                        newGradeValueText = ""
+                    },
+                    title = { Text("Add Grade") },
+                    text = {
+                        Column {
+                            TextField(
+                                value = newGradeName,
+                                onValueChange = { newGradeName = it },
+                                placeholder = { Text("Grade name") }
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            TextField(
+                                value = newGradeValueText,
+                                onValueChange = { newGradeValueText = it },
+                                placeholder = { Text("Value (e.g. 9.5)") }
+                            )
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            val value = newGradeValueText.toDoubleOrNull()
+                            if (value != null) {
+                                onAddGrade(newGradeName, value)
+                            }
+                            newGradeName = ""
+                            newGradeValueText = ""
+                            showAddDialog = false
+                        }) { Text("Add") }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = {
+                            newGradeName = ""
+                            newGradeValueText = ""
+                            showAddDialog = false
+                        }) { Text("Cancel") }
+                    }
+                )
+            }
+
+            val isDuplicate = nameError.collectAsState().value
+
+            if (isDuplicate) {
+                AlertDialog(
+                    onDismissRequest = { onClearNameError() },
+                    title = { Text("Invalid grade name") },
+                    text = { Text("This grade name already exists or is empty.") },
+                    confirmButton = {
+                        TextButton(onClick = { onClearNameError() }) {
+                            Text("OK")
+                        }
+                    }
+                )
+            }
+            // ----- Add grade functionality
+
+            // Delete grade functionality
+            if (showDeleteDialog && selectedGrade != null) {
+                AlertDialog(
+                    onDismissRequest = {
+                        showDeleteDialog = false
+                        selectedGrade = null
+                    },
+                    title = { Text("Delete Grade") },
+                    text = { Text("Are you sure you want to delete \"${selectedGrade!!.name}\"?") },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                onDeleteGrade(selectedGrade!!)
+                                showDeleteDialog = false
+                                selectedGrade = null
+                            },
+                            colors = ButtonDefaults.textButtonColors(
+                                contentColor = MaterialTheme.colorScheme.error
+                            )
+                        ) {
+                            Text("Delete")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = {
+                                showDeleteDialog = false
+                                selectedGrade = null
+                            }
+                        ) {
+                            Text("Cancel")
+                        }
+                    }
+                )
+            }
+            // ----- Delete grade functionality
+
         }
     }
     // ----- Screen
+
 }

@@ -5,32 +5,43 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import com.bacer.notesapp.ui.subjects.SubjectScreen
-import com.bacer.notesapp.ui.theme.NotesAppTheme
-import com.bacer.notesapp.data.DatabaseInstance
-import com.bacer.notesapp.data.SubjectRepository
-import com.bacer.notesapp.viewmodel.SubjectViewModel
-import com.bacer.notesapp.viewmodel.SubjectViewModelFactory
+import androidx.compose.runtime.*
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.bacer.notesapp.ui.subjects.SubjectScreen
 import com.bacer.notesapp.ui.grades.GradeScreen
+import com.bacer.notesapp.ui.theme.NotesAppTheme
+import com.bacer.notesapp.data.DatabaseInstance
+import com.bacer.notesapp.data.SubjectRepository
+import com.bacer.notesapp.data.GradeRepository
+import com.bacer.notesapp.viewmodel.SubjectViewModel
+import com.bacer.notesapp.viewmodel.SubjectViewModelFactory
+import com.bacer.notesapp.viewmodel.GradeViewModel
+import com.bacer.notesapp.viewmodel.GradeViewModelFactory
 
 class MainActivity : ComponentActivity() {
 
-    private val viewModel: SubjectViewModel by viewModels {
+    // ----- ViewModels (singletons for the whole app) -----
+    private val subjectViewModel: SubjectViewModel by viewModels {
         SubjectViewModelFactory(
-            SubjectRepository(
-                DatabaseInstance.getDatabase(this).subjectDao()
-            )
+            SubjectRepository(DatabaseInstance.getDatabase(this).subjectDao())
         )
     }
+
+    private val gradeViewModel: GradeViewModel by viewModels {
+        GradeViewModelFactory(
+            GradeRepository(DatabaseInstance.getDatabase(this).gradeDao())
+        )
+    }
+    // ----------------------------------------------------
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        viewModel.loadSubjects()
+        // Load subjects once (the list is a StateFlow, UI will react automatically)
+        subjectViewModel.loadSubjects()
 
         setContent {
             NotesAppTheme {
@@ -40,26 +51,44 @@ class MainActivity : ComponentActivity() {
                     navController = navController,
                     startDestination = "subjects"
                 ) {
-
+                    // ---------- Subjects ----------
                     composable("subjects") {
                         SubjectScreen(
-                            subjects = viewModel.subjects,
-                            onAddSubject = { viewModel.addSubject(it) },
-                            onDeleteSubject = { viewModel.deleteSubject(it) },
-                            nameError = viewModel.nameError,
-                            onClearNameError = { viewModel.clearNameError() },
+                            subjects = subjectViewModel.subjects,
+                            onAddSubject = { subjectViewModel.addSubject(it) },
+                            onDeleteSubject = { subjectViewModel.deleteSubject(it) },
+                            nameError = subjectViewModel.nameError,
+                            onClearNameError = { subjectViewModel.clearNameError() },
                             onGradesClick = { subjectId ->
                                 navController.navigate("grades/$subjectId")
                             }
                         )
                     }
-
+                    // ---------- Grades ----------
                     composable("grades/{subjectId}") { backStackEntry ->
                         val subjectId = backStackEntry.arguments?.getString("subjectId")!!.toInt()
+
+                        // Load grades **only for the current subject**
+                        LaunchedEffect(subjectId) {
+                            gradeViewModel.loadGrades(subjectId)
+                        }
+
+                        // Get the subject name for the title (fallback to "Grades")
+                        val subject by subjectViewModel.getSubjectById(subjectId)
+                            .collectAsState(initial = null)
+
                         GradeScreen(
-                            subjectId = subjectId,
+                            grades = gradeViewModel.grades,
+                            subjectName = subject?.name ?: "Grades",
                             onBack = { navController.popBackStack() },
-                            viewModel = viewModel
+                            onAddGrade = { name, value ->
+                                gradeViewModel.addGrade(subjectId, name, value)
+                            },
+                            onDeleteGrade = { grade ->
+                                gradeViewModel.deleteGrade(grade, subjectId)
+                            },
+                            nameError = gradeViewModel.nameError,
+                            onClearNameError = { gradeViewModel.clearNameError() }
                         )
                     }
                 }
