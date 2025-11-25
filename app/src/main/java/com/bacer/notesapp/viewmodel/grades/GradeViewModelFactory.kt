@@ -1,8 +1,8 @@
-package com.bacer.notesapp.viewmodel
+package com.bacer.notesapp.viewmodel.grades
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.bacer.notesapp.data.GradeRepository
+import com.bacer.notesapp.data.grades.GradeRepository
 
 class GradeViewModelFactory(private val repository: GradeRepository) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {

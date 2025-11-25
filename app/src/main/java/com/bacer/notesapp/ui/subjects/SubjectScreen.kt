@@ -21,7 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Color
-import com.bacer.notesapp.data.SubjectEntity
+import com.bacer.notesapp.data.subjects.SubjectEntity
 import kotlinx.coroutines.flow.StateFlow
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.size
@@ -37,7 +37,8 @@ fun SubjectScreen(
     onDeleteSubject: (SubjectEntity) -> Unit,
     nameError: StateFlow<Boolean>,
     onClearNameError: () -> Unit,
-    onGradesClick: (Int) -> Unit
+    onGradesClick: (Int) -> Unit,
+    onNotesClick: (Int) -> Unit
 ) {
     // Add subject variables
     var showAddDialog by remember { mutableStateOf(false) }
@@ -157,7 +158,7 @@ fun SubjectScreen(
                                     .padding(start = 14.dp, end = 14.dp, top = 6.dp),
                                 verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                listOf("Notes", "Grades", "AI Assistant").forEach { label ->
+                                listOf("Notes", "Grades").forEach { label ->
                                     Card(
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -166,6 +167,7 @@ fun SubjectScreen(
                                                 detectTapGestures {
                                                     when (label) {
                                                         "Grades" -> onGradesClick(subject.id)
+                                                        "Notes" -> onNotesClick(subject.id)
                                                     }
                                                 }
                                             },

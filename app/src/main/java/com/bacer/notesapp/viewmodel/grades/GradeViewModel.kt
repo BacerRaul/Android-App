@@ -1,9 +1,9 @@
-package com.bacer.notesapp.viewmodel
+package com.bacer.notesapp.viewmodel.grades
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.bacer.notesapp.data.GradeRepository
-import com.bacer.notesapp.data.GradeEntity
+import com.bacer.notesapp.data.grades.GradeEntity
+import com.bacer.notesapp.data.grades.GradeRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch

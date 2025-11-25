@@ -1,4 +1,4 @@
-package com.bacer.notesapp.data
+package com.bacer.notesapp.data.database
 
 import android.content.Context
 import androidx.room.Room

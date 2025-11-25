@@ -1,14 +1,13 @@
-package com.bacer.notesapp.viewmodel
+package com.bacer.notesapp.viewmodel.subjects
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.bacer.notesapp.data.SubjectRepository
-import com.bacer.notesapp.data.SubjectEntity
+import com.bacer.notesapp.data.subjects.SubjectEntity
+import com.bacer.notesapp.data.subjects.SubjectRepository
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.flow.Flow
-
 
 class SubjectViewModel(private val repo: SubjectRepository) : ViewModel() {
 

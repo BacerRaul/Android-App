@@ -1,6 +1,4 @@
-package com.bacer.notesapp.data
-
-import kotlinx.coroutines.flow.Flow
+package com.bacer.notesapp.data.grades
 
 class GradeRepository(private val dao: GradeDao) {
 

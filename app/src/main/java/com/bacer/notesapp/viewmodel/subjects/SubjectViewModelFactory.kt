@@ -1,8 +1,8 @@
-package com.bacer.notesapp.viewmodel
+package com.bacer.notesapp.viewmodel.subjects
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.bacer.notesapp.data.SubjectRepository
+import com.bacer.notesapp.data.subjects.SubjectRepository
 
 class SubjectViewModelFactory(private val repository: SubjectRepository) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {

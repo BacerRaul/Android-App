@@ -1,6 +1,7 @@
-package com.bacer.notesapp.data
+package com.bacer.notesapp.data.subjects
 
 import androidx.room.*
+import com.bacer.notesapp.data.subjects.SubjectEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao

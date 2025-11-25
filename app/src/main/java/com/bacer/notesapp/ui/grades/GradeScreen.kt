@@ -22,7 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Color
-import com.bacer.notesapp.data.GradeEntity
+import com.bacer.notesapp.data.grades.GradeEntity
 import kotlinx.coroutines.flow.StateFlow
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.size
@@ -78,7 +78,8 @@ fun GradeScreen(
                     ) {
                         Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")
                     }
-                    // -----
+                    // ----- Back button
+
                     // Add grade button
                     FloatingActionButton(
                         modifier = Modifier

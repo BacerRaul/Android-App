@@ -1,4 +1,4 @@
-package com.bacer.notesapp.data
+package com.bacer.notesapp.data.subjects
 
 import kotlinx.coroutines.flow.Flow
 

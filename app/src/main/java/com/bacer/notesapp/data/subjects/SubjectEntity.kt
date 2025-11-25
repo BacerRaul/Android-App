@@ -1,4 +1,4 @@
-package com.bacer.notesapp.data
+package com.bacer.notesapp.data.subjects
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

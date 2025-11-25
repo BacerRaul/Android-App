@@ -12,13 +12,17 @@ import androidx.navigation.compose.rememberNavController
 import com.bacer.notesapp.ui.subjects.SubjectScreen
 import com.bacer.notesapp.ui.grades.GradeScreen
 import com.bacer.notesapp.ui.theme.NotesAppTheme
-import com.bacer.notesapp.data.DatabaseInstance
-import com.bacer.notesapp.data.SubjectRepository
-import com.bacer.notesapp.data.GradeRepository
-import com.bacer.notesapp.viewmodel.SubjectViewModel
-import com.bacer.notesapp.viewmodel.SubjectViewModelFactory
-import com.bacer.notesapp.viewmodel.GradeViewModel
-import com.bacer.notesapp.viewmodel.GradeViewModelFactory
+import com.bacer.notesapp.data.database.DatabaseInstance
+import com.bacer.notesapp.data.subjects.SubjectRepository
+import com.bacer.notesapp.data.grades.GradeRepository
+import com.bacer.notesapp.ui.aiassistant.NotesScreen
+import com.bacer.notesapp.viewmodel.subjects.SubjectViewModel
+import com.bacer.notesapp.viewmodel.subjects.SubjectViewModelFactory
+import com.bacer.notesapp.viewmodel.grades.GradeViewModel
+import com.bacer.notesapp.viewmodel.grades.GradeViewModelFactory
+import com.bacer.notesapp.viewmodel.notes.NoteViewModelFactory
+import com.bacer.notesapp.data.notes.NoteRepository
+import com.bacer.notesapp.viewmodel.notes.NoteViewModel
 
 class MainActivity : ComponentActivity() {
 
@@ -32,6 +36,12 @@ class MainActivity : ComponentActivity() {
     private val gradeViewModel: GradeViewModel by viewModels {
         GradeViewModelFactory(
             GradeRepository(DatabaseInstance.getDatabase(this).gradeDao())
+        )
+    }
+
+    private val noteViewModel: NoteViewModel by viewModels {
+        NoteViewModelFactory(
+            NoteRepository(DatabaseInstance.getDatabase(this).noteDao())
         )
     }
     // ----------------------------------------------------
@@ -59,21 +69,24 @@ class MainActivity : ComponentActivity() {
                             onDeleteSubject = { subjectViewModel.deleteSubject(it) },
                             nameError = subjectViewModel.nameError,
                             onClearNameError = { subjectViewModel.clearNameError() },
+
                             onGradesClick = { subjectId ->
                                 navController.navigate("grades/$subjectId")
+                            },
+                            onNotesClick = { subjectId ->
+                                navController.navigate("notes/$subjectId")
                             }
                         )
                     }
+
                     // ---------- Grades ----------
                     composable("grades/{subjectId}") { backStackEntry ->
                         val subjectId = backStackEntry.arguments?.getString("subjectId")!!.toInt()
 
-                        // Load grades **only for the current subject**
                         LaunchedEffect(subjectId) {
                             gradeViewModel.loadGrades(subjectId)
                         }
 
-                        // Get the subject name for the title (fallback to "Grades")
                         val subject by subjectViewModel.getSubjectById(subjectId)
                             .collectAsState(initial = null)
 
@@ -91,6 +104,34 @@ class MainActivity : ComponentActivity() {
                             onClearNameError = { gradeViewModel.clearNameError() }
                         )
                     }
+
+                    // ---------- Notes ----------
+                    composable("notes/{subjectId}") { backStackEntry ->
+                        val subjectId = backStackEntry.arguments?.getString("subjectId")!!.toInt()
+
+                        LaunchedEffect(subjectId) {
+                            noteViewModel.loadNotes(subjectId)
+                        }
+
+                        val subject by subjectViewModel.getSubjectById(subjectId)
+                            .collectAsState(initial = null)
+
+                        NotesScreen(
+                            notes = noteViewModel.notes,
+                            subjectName = subject?.name ?: "Notes",
+                            onBack = { navController.popBackStack() },
+                            onAddNote = { name, images ->
+                                noteViewModel.addNote(subjectId, name, images)
+                            },
+                            onDeleteNote = { note ->
+                                noteViewModel.deleteNote(note, subjectId)
+                            }
+                        )
+                    }
+
+
+
+
                 }
             }
         }
