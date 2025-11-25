@@ -15,7 +15,7 @@ import com.bacer.notesapp.ui.theme.NotesAppTheme
 import com.bacer.notesapp.data.database.DatabaseInstance
 import com.bacer.notesapp.data.subjects.SubjectRepository
 import com.bacer.notesapp.data.grades.GradeRepository
-import com.bacer.notesapp.ui.aiassistant.NotesScreen
+import com.bacer.notesapp.ui.notes.NotesScreen
 import com.bacer.notesapp.viewmodel.subjects.SubjectViewModel
 import com.bacer.notesapp.viewmodel.subjects.SubjectViewModelFactory
 import com.bacer.notesapp.viewmodel.grades.GradeViewModel
