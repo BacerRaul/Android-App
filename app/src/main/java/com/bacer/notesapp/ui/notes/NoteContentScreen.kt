@@ -94,13 +94,18 @@ fun NoteContentScreen(
 
                 // Images
                 LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = 100.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(imageUris) { uriString ->
                         val uri = Uri.parse(uriString)
 
                         Card(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.
+                                fillMaxWidth()
+                                .padding(top = 10.dp, bottom = 10.dp),
                             colors = CardDefaults.cardColors(
                                 Color.White.copy(alpha = 0.15f)
                             ),

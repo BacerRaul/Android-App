@@ -26,6 +26,9 @@ import androidx.compose.ui.unit.sp
 import com.bacer.notesapp.data.notes.NoteEntity
 import com.bacer.notesapp.ui.theme.NotesGradientBackground
 import kotlinx.coroutines.flow.StateFlow
+import android.content.Intent
+import androidx.compose.ui.platform.LocalContext
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,9 +61,23 @@ fun NotesScreen(
     // -----
 
     // Image picker launcher
+    val context = LocalContext.current
+
     val imagePickerLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
             selectedImages = uris
+
+            // Persist permissions
+            uris.forEach { uri ->
+                try {
+                    context.contentResolver.takePersistableUriPermission(
+                        uri,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    )
+                } catch (e: SecurityException) {
+                    // Ignore if permission cannot be taken
+                }
+            }
         }
     // -----
 
