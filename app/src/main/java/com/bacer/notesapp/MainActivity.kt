@@ -22,7 +22,10 @@ import com.bacer.notesapp.viewmodel.grades.GradeViewModel
 import com.bacer.notesapp.viewmodel.grades.GradeViewModelFactory
 import com.bacer.notesapp.viewmodel.notes.NoteViewModelFactory
 import com.bacer.notesapp.data.notes.NoteRepository
+import com.bacer.notesapp.ui.notes.NoteContentScreen
 import com.bacer.notesapp.viewmodel.notes.NoteViewModel
+import com.bacer.notesapp.viewmodel.notes.NoteContentViewModel
+import com.bacer.notesapp.viewmodel.notes.NoteContentViewModelFactory
 
 class MainActivity : ComponentActivity() {
 
@@ -41,6 +44,12 @@ class MainActivity : ComponentActivity() {
 
     private val noteViewModel: NoteViewModel by viewModels {
         NoteViewModelFactory(
+            NoteRepository(DatabaseInstance.getDatabase(this).noteDao())
+        )
+    }
+
+    private val noteContentViewModel: NoteContentViewModel by viewModels {
+        NoteContentViewModelFactory(
             NoteRepository(DatabaseInstance.getDatabase(this).noteDao())
         )
     }
@@ -132,13 +141,30 @@ class MainActivity : ComponentActivity() {
                             onClearNameError = { noteViewModel.clearNameError() },
 
                             imageError = noteViewModel.imageError,
-                            onClearImageError = { noteViewModel.clearImageError() }
+                            onClearImageError = { noteViewModel.clearImageError() },
+
+                            onContentClick = { noteId ->
+                                navController.navigate("noteContent/$noteId")
+                            },
                         )
                     }
 
+                    // ---------- Note Content ----------
+                    composable("noteContent/{noteId}") { backStackEntry ->
+                        val noteId = backStackEntry.arguments?.getString("noteId")!!.toInt()
 
+                        LaunchedEffect(noteId) {
+                            noteContentViewModel.loadNote(noteId)
+                        }
 
+                        val note by noteContentViewModel.note.collectAsState()
 
+                        NoteContentScreen(
+                            noteName = note?.name ?: "Content",
+                            imageUris = note?.imageUris ?: emptyList(),
+                            onBack = { navController.popBackStack() }
+                        )
+                    }
                 }
             }
         }
