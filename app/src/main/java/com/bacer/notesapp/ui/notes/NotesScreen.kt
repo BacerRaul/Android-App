@@ -34,7 +34,13 @@ fun NotesScreen(
     subjectName: String,
     onBack: () -> Unit,
     onAddNote: (String, List<String>) -> Unit,
-    onDeleteNote: (NoteEntity) -> Unit
+    onDeleteNote: (NoteEntity) -> Unit,
+    nameError: StateFlow<Boolean>,
+    onClearNameError: () -> Unit,
+    imageError: StateFlow<Boolean>,
+    onClearImageError: () -> Unit,
+    onContentClick: (Int) -> Unit = {},
+    onAssistantClick: (Int) -> Unit = {}
 ) {
     // Add note variables
     var showAddDialog by remember { mutableStateOf(false) }
@@ -47,12 +53,18 @@ fun NotesScreen(
     var selectedNote by remember { mutableStateOf<NoteEntity?>(null) }
     // -----
 
+    // Expand note variables
+    var expandedNoteId by remember { mutableStateOf<Int?>(null) }
+    // -----
+
     // Image picker launcher
     val imagePickerLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
             selectedImages = uris
         }
+    // -----
 
+    // Screen
     NotesGradientBackground {
         Scaffold(
             containerColor = Color.Transparent, // So the default color of the screen is see-through, so the new background color can be seen
@@ -141,6 +153,7 @@ fun NotesScreen(
                                 .fillMaxWidth()
                                 .pointerInput(note.id) {
                                     detectTapGestures(
+                                        onTap = { expandedNoteId = if (expandedNoteId == note.id) null else note.id },
                                         onLongPress = {
                                             selectedNote = note
                                             showDeleteDialog = true
@@ -174,6 +187,53 @@ fun NotesScreen(
                             }
                         }
                         // ----- Note card
+
+                        // Expanded notes cards
+                        if (expandedNoteId == note.id) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(start = 14.dp, end = 14.dp, top = 6.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+
+                                listOf("Content", "AI Assistant").forEach { label ->
+                                    Card(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(36.dp)
+                                            .pointerInput(note.id) {
+                                                detectTapGestures {
+                                                    when (label) {
+                                                        "Content" -> onContentClick(note.id)
+                                                        "AI Assistant" -> onAssistantClick(note.id)
+                                                    }
+                                                }
+                                            },
+                                        colors = CardDefaults.cardColors(
+                                            Color.White.copy(alpha = 0.30f)
+                                        ),
+                                        border = BorderStroke(
+                                            2.dp,
+                                            Color.White.copy(alpha = 0.70f)
+                                        ),
+                                        shape = MaterialTheme.shapes.medium
+                                    ) {
+                                        Box(
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                text = label,
+                                                fontSize = 14.sp,
+                                                color = Color.White
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        // ----- Expanded notes cards
 
                     }
                 }
@@ -209,7 +269,6 @@ fun NotesScreen(
                                 Spacer(modifier = Modifier.height(6.dp))
                                 Text(
                                     text = "${selectedImages.size} images selected",
-                                    color = Color.White
                                 )
                             }
                         }
@@ -234,6 +293,36 @@ fun NotesScreen(
                             selectedImages = emptyList()
                         }) {
                             Text("Cancel")
+                        }
+                    }
+                )
+            }
+
+            val isDuplicate = nameError.collectAsState().value
+
+            if (isDuplicate) {
+                AlertDialog(
+                    onDismissRequest = { onClearNameError() },
+                    title = { Text("Invalid note name") },
+                    text = { Text("This note name already exists or is empty.") },
+                    confirmButton = {
+                        TextButton(onClick = { onClearNameError() }) {
+                            Text("OK")
+                        }
+                    }
+                )
+            }
+
+            val noImages = imageError.collectAsState().value
+
+            if (noImages) {
+                AlertDialog(
+                    onDismissRequest = { onClearImageError() },
+                    title = { Text("No images selected") },
+                    text = { Text("Please select at least one photo before adding the note.") },
+                    confirmButton = {
+                        TextButton(onClick = { onClearImageError() }) {
+                            Text("OK")
                         }
                     }
                 )
@@ -282,4 +371,3 @@ fun NotesScreen(
     // ----- Screen
 
 }
-

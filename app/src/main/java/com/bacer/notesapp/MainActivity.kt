@@ -100,6 +100,7 @@ class MainActivity : ComponentActivity() {
                             onDeleteGrade = { grade ->
                                 gradeViewModel.deleteGrade(grade, subjectId)
                             },
+
                             nameError = gradeViewModel.nameError,
                             onClearNameError = { gradeViewModel.clearNameError() }
                         )
@@ -125,7 +126,13 @@ class MainActivity : ComponentActivity() {
                             },
                             onDeleteNote = { note ->
                                 noteViewModel.deleteNote(note, subjectId)
-                            }
+                            },
+
+                            nameError = noteViewModel.nameError,
+                            onClearNameError = { noteViewModel.clearNameError() },
+
+                            imageError = noteViewModel.imageError,
+                            onClearImageError = { noteViewModel.clearImageError() }
                         )
                     }
 

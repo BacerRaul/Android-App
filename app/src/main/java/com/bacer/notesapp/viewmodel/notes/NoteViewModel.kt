@@ -22,11 +22,35 @@ class NoteViewModel(private val repository: NoteRepository) : ViewModel() {
     // ----- Load notes
 
     // Add notes
+    private val _nameError = MutableStateFlow(false)
+    val nameError: StateFlow<Boolean> = _nameError
+
+    private val _imageError = MutableStateFlow(false)
+    val imageError: StateFlow<Boolean> = _imageError
+
     fun addNote(subjectId: Int, name: String, imageUris: List<String>) {
+        if (name.isBlank() || _notes.value.any { it.name == name }) {
+            _nameError.value = true
+            return
+        }
+
+        if (imageUris.isEmpty()) {
+            _imageError.value = true
+            return
+        }
+
         viewModelScope.launch {
             repository.insertNote(subjectId, name, imageUris)
             loadNotes(subjectId)
         }
+    }
+
+    fun clearNameError() {
+        _nameError.value = false
+    }
+
+    fun clearImageError() {
+        _imageError.value = false
     }
     // ----- Add notes
 

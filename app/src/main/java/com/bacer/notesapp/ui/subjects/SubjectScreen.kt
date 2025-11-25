@@ -52,7 +52,7 @@ fun SubjectScreen(
 
     // Expand subject variables
     var expandedSubjectId by remember { mutableStateOf<Int?>(null) }
-    // ----- Expand subject variables
+    // -----
 
     // Screen
     SubjectGradientBackground {
