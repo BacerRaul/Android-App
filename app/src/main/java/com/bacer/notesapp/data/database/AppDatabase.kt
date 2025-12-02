@@ -12,8 +12,11 @@ import com.bacer.notesapp.data.notes.NoteEntity
 
 @Database(
     entities = [SubjectEntity::class, GradeEntity::class, NoteEntity::class],
-    version = 3)
+    version = 4
+)
+
 @TypeConverters(com.bacer.notesapp.data.notes.Converters::class)
+
 abstract class AppDatabase : RoomDatabase() {
     abstract fun subjectDao(): SubjectDao
     abstract fun gradeDao(): GradeDao
