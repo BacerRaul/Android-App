@@ -29,6 +29,9 @@ import kotlinx.coroutines.flow.StateFlow
 import android.content.Intent
 import androidx.compose.ui.platform.LocalContext
 import com.bacer.notesapp.utils.saveImageToInternalStorage
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.PhotoLibrary
+import java.io.File
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -80,6 +83,25 @@ fun NotesScreen(
                 }
             }
         }
+    // -----
+
+    // Camera URI
+    var cameraUri by remember { mutableStateOf<Uri?>(null) }
+    // -----
+
+    // Camera launcher
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success && cameraUri != null) {
+            selectedImages = selectedImages + cameraUri!!
+        } else {
+            cameraUri?.let { uri ->
+                File(uri.path!!).takeIf { it.exists() }?.delete()
+            }
+        }
+        cameraUri = null
+    }
     // -----
 
     // Screen
@@ -261,38 +283,83 @@ fun NotesScreen(
 
             // Add note functionality
             if (showAddDialog) {
+                LaunchedEffect(Unit) {
+                    val file = File(context.filesDir, "temp_camera_${System.currentTimeMillis()}.jpg")
+                    cameraUri = androidx.core.content.FileProvider.getUriForFile(
+                        context,
+                        "com.bacer.notesapp.fileprovider",
+                        file
+                    )
+                }
+
+                val dismissDialogAndCleanup = {
+                    cameraUri?.let { uri ->
+                        File(uri.path!!).takeIf { it.exists() }?.delete()
+                    }
+                    cameraUri = null
+                    selectedImages = emptyList()
+                    newNoteName = ""
+                    showAddDialog = false
+                }
+
                 AlertDialog(
-                    onDismissRequest = {
-                        showAddDialog = false
-                        newNoteName = ""
-                        selectedImages = emptyList()
-                    },
+                    onDismissRequest = dismissDialogAndCleanup,
+
                     title = { Text("Add Note") },
                     text = {
                         Column {
                             TextField(
                                 value = newNoteName,
                                 onValueChange = { newNoteName = it },
-                                placeholder = { Text("Note name") }
+                                placeholder = { Text("Note name") },
+                                modifier = Modifier.fillMaxWidth()
                             )
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            Button(
-                                onClick = { imagePickerLauncher.launch("image/*") }
-                            ) {
-                                Text("Select Images")
-                            }
+                            Spacer(modifier = Modifier.height(16.dp))
 
                             if (selectedImages.isNotEmpty()) {
-                                Spacer(modifier = Modifier.height(6.dp))
                                 Text(
                                     text = "${selectedImages.size} images selected",
                                 )
+                                Spacer(modifier = Modifier.height(8.dp))
+                            }
+
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Button(
+                                    onClick = { imagePickerLauncher.launch("image/*") },
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Icon(Icons.Default.PhotoLibrary, contentDescription = null, modifier = Modifier.size(18.dp))
+                                    Spacer(Modifier.width(8.dp))
+                                    Text("Gallery")
+                                }
+
+                                Button(
+                                    onClick = {
+                                        cameraUri?.let { uri ->
+                                            cameraLauncher.launch(uri)
+                                        }
+                                    },
+                                    enabled = cameraUri != null,
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Icon(Icons.Default.CameraAlt, contentDescription = null, modifier = Modifier.size(18.dp))
+                                    Spacer(Modifier.width(8.dp))
+                                    Text("Camera")
+                                }
                             }
                         }
                     },
+
                     confirmButton = {
                         TextButton(onClick = {
+                            if (selectedImages.isEmpty()) {
+                                onClearImageError()
+                                return@TextButton
+                            }
+
                             val storedPaths = selectedImages.map { uri ->
                                 saveImageToInternalStorage(context, uri)
                             }
@@ -302,19 +369,14 @@ fun NotesScreen(
                                 storedPaths
                             )
 
-                            newNoteName = ""
-                            selectedImages = emptyList()
-                            showAddDialog = false
+                            dismissDialogAndCleanup()
                         }) {
                             Text("Add")
                         }
                     },
+
                     dismissButton = {
-                        TextButton(onClick = {
-                            showAddDialog = false
-                            newNoteName = ""
-                            selectedImages = emptyList()
-                        }) {
+                        TextButton(onClick = dismissDialogAndCleanup) {
                             Text("Cancel")
                         }
                     }
