@@ -30,6 +30,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.bacer.notesapp.data.notes.NoteEntity
 import com.bacer.notesapp.ui.theme.NotesGradientBackground
 import kotlinx.coroutines.flow.StateFlow
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -100,7 +101,7 @@ fun NoteContentScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(imageUris) { uriString ->
-                        val uri = Uri.parse(uriString)
+                        val uri = Uri.fromFile(File(uriString))
 
                         Card(
                             modifier = Modifier.

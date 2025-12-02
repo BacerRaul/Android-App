@@ -28,6 +28,7 @@ import com.bacer.notesapp.ui.theme.NotesGradientBackground
 import kotlinx.coroutines.flow.StateFlow
 import android.content.Intent
 import androidx.compose.ui.platform.LocalContext
+import com.bacer.notesapp.utils.saveImageToInternalStorage
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -292,10 +293,15 @@ fun NotesScreen(
                     },
                     confirmButton = {
                         TextButton(onClick = {
+                            val storedPaths = selectedImages.map { uri ->
+                                saveImageToInternalStorage(context, uri)
+                            }
+
                             onAddNote(
                                 newNoteName,
-                                selectedImages.map { it.toString() }
+                                storedPaths
                             )
+
                             newNoteName = ""
                             selectedImages = emptyList()
                             showAddDialog = false
