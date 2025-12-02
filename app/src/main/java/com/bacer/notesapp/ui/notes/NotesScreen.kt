@@ -31,12 +31,15 @@ import androidx.compose.ui.platform.LocalContext
 import com.bacer.notesapp.utils.saveImageToInternalStorage
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.navigation.NavHostController
 import java.io.File
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotesScreen(
+    navController: NavHostController,
+
     notes: StateFlow<List<NoteEntity>>,
     subjectName: String,
     onBack: () -> Unit,
@@ -47,12 +50,13 @@ fun NotesScreen(
     imageError: StateFlow<Boolean>,
     onClearImageError: () -> Unit,
     onContentClick: (Int) -> Unit = {},
-    onAssistantClick: (Int) -> Unit = {}
+    onAssistantClick: (Int) -> Unit = {},
+    onOpenCamera: () -> Unit
 ) {
     // Add note variables
     var showAddDialog by remember { mutableStateOf(false) }
     var newNoteName by remember { mutableStateOf("") }
-    var selectedImages by remember { mutableStateOf<List<Uri>>(emptyList()) }
+    var selectedImages by remember { mutableStateOf<List<String>>(emptyList()) }
     // -----
 
     // Delete note variables
@@ -69,7 +73,7 @@ fun NotesScreen(
 
     val imagePickerLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
-            selectedImages = uris
+            selectedImages = selectedImages + uris.map { it.toString() }
 
             // Persist permissions
             uris.forEach { uri ->
@@ -85,24 +89,38 @@ fun NotesScreen(
         }
     // -----
 
-    // Camera URI
-    var cameraUri by remember { mutableStateOf<Uri?>(null) }
-    // -----
+    val capturedPhotos = navController.currentBackStackEntry
+        ?.savedStateHandle
+        ?.getStateFlow<List<String>?>("captured_photos", null)
+        ?.collectAsState()
 
-    // Camera launcher
-    val cameraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicture()
-    ) { success ->
-        if (success && cameraUri != null) {
-            selectedImages = selectedImages + cameraUri!!
-        } else {
-            cameraUri?.let { uri ->
-                File(uri.path!!).takeIf { it.exists() }?.delete()
+    val shouldOpenDialog = navController.currentBackStackEntry
+        ?.savedStateHandle
+        ?.getStateFlow<Boolean?>("should_open_dialog", null)
+        ?.collectAsState()
+
+    LaunchedEffect(capturedPhotos?.value, shouldOpenDialog?.value) {
+        capturedPhotos?.value?.let { paths ->
+            if (paths.isNotEmpty()) {
+                selectedImages = selectedImages + paths
+            }
+            navController.currentBackStackEntry
+                ?.savedStateHandle
+                ?.remove<List<String>>("captured_photos")
+
+            shouldOpenDialog?.value?.let { open ->
+                if (open) {
+                    showAddDialog = true
+                    // Remove the flag so the dialog doesn't re-open if the screen is recomposed later
+                    navController.currentBackStackEntry
+                        ?.savedStateHandle
+                        ?.remove<Boolean>("should_open_dialog")
+                }
             }
         }
-        cameraUri = null
     }
     // -----
+
 
     // Screen
     NotesGradientBackground {
@@ -283,20 +301,8 @@ fun NotesScreen(
 
             // Add note functionality
             if (showAddDialog) {
-                LaunchedEffect(Unit) {
-                    val file = File(context.filesDir, "temp_camera_${System.currentTimeMillis()}.jpg")
-                    cameraUri = androidx.core.content.FileProvider.getUriForFile(
-                        context,
-                        "com.bacer.notesapp.fileprovider",
-                        file
-                    )
-                }
 
                 val dismissDialogAndCleanup = {
-                    cameraUri?.let { uri ->
-                        File(uri.path!!).takeIf { it.exists() }?.delete()
-                    }
-                    cameraUri = null
                     selectedImages = emptyList()
                     newNoteName = ""
                     showAddDialog = false
@@ -338,11 +344,8 @@ fun NotesScreen(
 
                                 Button(
                                     onClick = {
-                                        cameraUri?.let { uri ->
-                                            cameraLauncher.launch(uri)
-                                        }
+                                        onOpenCamera()
                                     },
-                                    enabled = cameraUri != null,
                                     modifier = Modifier.weight(1f)
                                 ) {
                                     Icon(Icons.Default.CameraAlt, contentDescription = null, modifier = Modifier.size(18.dp))
@@ -360,19 +363,29 @@ fun NotesScreen(
                                 return@TextButton
                             }
 
-                            val storedPaths = selectedImages.map { uri ->
-                                saveImageToInternalStorage(context, uri)
+                            val finalStoredPaths = mutableListOf<String>()
+
+                            val galleryUris = selectedImages.filter { it.startsWith("content://") }
+                            val storedGalleryPaths = galleryUris.map { uriString ->
+                                saveImageToInternalStorage(context, Uri.parse(uriString))
                             }
+                            finalStoredPaths.addAll(storedGalleryPaths)
+
+                            val cameraPaths = selectedImages.filter { it.startsWith(context.filesDir.absolutePath) }
+                            finalStoredPaths.addAll(cameraPaths)
 
                             onAddNote(
-                                newNoteName,
-                                storedPaths
+                                if (newNoteName.trim().isEmpty()) "Note ${System.currentTimeMillis()}" else newNoteName.trim(),
+                                finalStoredPaths
                             )
 
-                            dismissDialogAndCleanup()
+                            selectedImages = emptyList()
+                            newNoteName = ""
+                            showAddDialog = false
                         }) {
                             Text("Add")
                         }
+
                     },
 
                     dismissButton = {

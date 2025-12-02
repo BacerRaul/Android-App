@@ -2,8 +2,11 @@ package com.bacer.notesapp
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.runtime.*
 import androidx.navigation.compose.NavHost
@@ -22,6 +25,7 @@ import com.bacer.notesapp.viewmodel.grades.GradeViewModel
 import com.bacer.notesapp.viewmodel.grades.GradeViewModelFactory
 import com.bacer.notesapp.viewmodel.notes.NoteViewModelFactory
 import com.bacer.notesapp.data.notes.NoteRepository
+import com.bacer.notesapp.ui.notes.CameraScreen
 import com.bacer.notesapp.ui.notes.NoteContentScreen
 import com.bacer.notesapp.viewmodel.notes.NoteViewModel
 import com.bacer.notesapp.viewmodel.notes.NoteContentViewModel
@@ -55,6 +59,7 @@ class MainActivity : ComponentActivity() {
     }
     // ----------------------------------------------------
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -65,6 +70,15 @@ class MainActivity : ComponentActivity() {
         setContent {
             NotesAppTheme {
                 val navController = rememberNavController()
+
+                // Camera permission launcher
+                val cameraPermissionLauncher = rememberLauncherForActivityResult(
+                    ActivityResultContracts.RequestPermission()
+                ) { isGranted ->
+                    if (isGranted) {
+                        navController.navigate("camera")
+                    }
+                }
 
                 NavHost(
                     navController = navController,
@@ -127,6 +141,8 @@ class MainActivity : ComponentActivity() {
                             .collectAsState(initial = null)
 
                         NotesScreen(
+                            navController = navController,
+
                             notes = noteViewModel.notes,
                             subjectName = subject?.name ?: "Notes",
                             onBack = { navController.popBackStack() },
@@ -146,6 +162,9 @@ class MainActivity : ComponentActivity() {
                             onContentClick = { noteId ->
                                 navController.navigate("noteContent/$noteId")
                             },
+
+                            onOpenCamera = {
+                                cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA)                            }
                         )
                     }
 
@@ -165,6 +184,15 @@ class MainActivity : ComponentActivity() {
                             onBack = { navController.popBackStack() }
                         )
                     }
+
+                    // ---------- Camera ----------
+                    composable("camera") {
+                        CameraScreen(
+                            navController = navController,
+                            onCancel = { navController.popBackStack() }
+                        )
+                    }
+
                 }
             }
         }
