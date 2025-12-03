@@ -154,7 +154,7 @@ fun NotesScreen(
                     FloatingActionButton(
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
-                            .padding(end = 30.dp, bottom = 20.dp)
+                            .padding(end = 0.dp, bottom = 20.dp)
                             .size(65.dp)
                             .border(
                                 width = 2.dp,
@@ -182,15 +182,20 @@ fun NotesScreen(
             ) {
 
                 // Title
-                Box(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 20.dp),
-                    contentAlignment = Alignment.Center
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
                         text = subjectName,
-                        fontSize = 28.sp,
+                        fontSize = 22.sp,
+                        color = Color.White.copy(alpha = 0.7f)
+                    )
+                    Text(
+                        text = "Notes:",
+                        fontSize = 32.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
@@ -201,6 +206,9 @@ fun NotesScreen(
 
                 // Notes list
                 LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = 105.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(noteList, key = { it.id }) { note ->

@@ -160,7 +160,7 @@ class MainActivity : ComponentActivity() {
                             onClearImageError = { noteViewModel.clearImageError() },
 
                             onContentClick = { noteId ->
-                                navController.navigate("noteContent/$noteId")
+                                navController.navigate("noteContent/${subjectId}/$noteId")
                             },
 
                             onOpenCamera = {
@@ -169,16 +169,19 @@ class MainActivity : ComponentActivity() {
                     }
 
                     // ---------- Note Content ----------
-                    composable("noteContent/{noteId}") { backStackEntry ->
+                    composable("noteContent/{subjectId}/{noteId}") { backStackEntry ->
+                        val subjectId = backStackEntry.arguments?.getString("subjectId")!!.toInt()
                         val noteId = backStackEntry.arguments?.getString("noteId")!!.toInt()
 
                         LaunchedEffect(noteId) {
                             noteContentViewModel.loadNote(noteId)
                         }
 
+                        val subject by subjectViewModel.getSubjectById(subjectId).collectAsState(initial = null)
                         val note by noteContentViewModel.note.collectAsState()
 
                         NoteContentScreen(
+                            subjectName = subject?.name ?: "Subject",
                             noteName = note?.name ?: "Content",
                             imageUris = note?.imageUris ?: emptyList(),
                             onBack = { navController.popBackStack() }

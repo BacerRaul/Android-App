@@ -35,6 +35,7 @@ import java.io.File
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteContentScreen(
+    subjectName: String,
     noteName: String,
     imageUris: List<String>,
     onBack: () -> Unit,
@@ -78,15 +79,20 @@ fun NoteContentScreen(
             ) {
 
                 // Title
-                Box(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 20.dp),
-                    contentAlignment = Alignment.Center
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
+                        text = subjectName,
+                        fontSize = 22.sp,
+                        color = Color.White.copy(alpha = 0.7f)
+                    )
+                    Text(
                         text = noteName,
-                        fontSize = 28.sp,
+                        fontSize = 32.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
