@@ -62,7 +62,6 @@ fun AIAssistantScreen(
                     .fillMaxSize()
             ) {
 
-                // Title — exactly like your other screens
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -84,11 +83,10 @@ fun AIAssistantScreen(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // Question Input — NOW 100% IDENTICAL TO YOUR NOTE CARDS
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .pointerInput(Unit) { } // keeps same behavior as other cards (optional: add gestures later)
+                        .pointerInput(Unit) { }
                     ,
                     colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.15f)),
                     border = BorderStroke(2.dp, Color.White.copy(alpha = 0.35f)),
@@ -137,7 +135,6 @@ fun AIAssistantScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // ASK GROK BUTTON — NOW FULL GLASS STYLE
                 Card(
                     onClick = {
                         if (question.trim().isNotEmpty() && !isLoading) {
@@ -174,7 +171,7 @@ fun AIAssistantScreen(
                             }
                         } else {
                             Text(
-                                text = "Ask Grok",
+                                text = "Ask",
                                 color = Color.White,
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Medium
@@ -185,7 +182,6 @@ fun AIAssistantScreen(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // Answer Area — same glass style
                 if (isLoading) {
                     Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator(color = Color.White)

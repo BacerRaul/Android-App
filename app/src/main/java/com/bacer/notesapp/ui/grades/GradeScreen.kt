@@ -39,7 +39,9 @@ fun GradeScreen(
     onAddGrade: (String, Double) -> Unit,
     onDeleteGrade: (GradeEntity) -> Unit,
     nameError: StateFlow<Boolean>,
-    onClearNameError: () -> Unit
+    valueError: StateFlow<Boolean>,
+    onClearNameError: () -> Unit,
+    onClearValueError: () -> Unit
 ) {
     // Add grade variables
     var showAddDialog by remember { mutableStateOf(false) }
@@ -50,6 +52,10 @@ fun GradeScreen(
     // Delete grade variables
     var showDeleteDialog by remember { mutableStateOf(false) }
     var selectedGrade by remember { mutableStateOf<GradeEntity?>(null) }
+    // -----
+
+    // Used in checking for name duplicates
+    val currentGrades by grades.collectAsState()
     // -----
 
     // Screen
@@ -216,10 +222,35 @@ fun GradeScreen(
                     },
                     confirmButton = {
                         TextButton(onClick = {
-                            val value = newGradeValueText.toDoubleOrNull()
-                            if (value != null) {
-                                onAddGrade(newGradeName, value)
+                            val cleanName = newGradeName.trim()
+                            val valueText = newGradeValueText.trim()
+
+                            if (cleanName.isEmpty()) {
+                                onClearNameError()
+                                onAddGrade("", 0.0)
+                                return@TextButton
                             }
+
+                            if (currentGrades.any { it.name.equals(cleanName, ignoreCase = true) }) {
+                                onClearNameError()
+                                onAddGrade("", 0.0)
+                                return@TextButton
+                            }
+
+                            if (valueText.isEmpty()) {
+                                onClearValueError()
+                                onAddGrade(cleanName, -1.0)
+                                return@TextButton
+                            }
+                            val value = valueText.toDoubleOrNull()
+                            if (value == null || value < 0 || value > 10) {
+                                onClearValueError()
+                                onAddGrade(cleanName, -1.0)
+                                return@TextButton
+                            }
+
+                            onAddGrade(cleanName, value)
+
                             newGradeName = ""
                             newGradeValueText = ""
                             showAddDialog = false
@@ -235,17 +266,26 @@ fun GradeScreen(
                 )
             }
 
-            val isDuplicate = nameError.collectAsState().value
-
-            if (isDuplicate) {
+            val nameErrorState by nameError.collectAsState()
+            if (nameErrorState) {
                 AlertDialog(
                     onDismissRequest = { onClearNameError() },
                     title = { Text("Invalid grade name") },
                     text = { Text("This grade name already exists or is empty.") },
                     confirmButton = {
-                        TextButton(onClick = { onClearNameError() }) {
-                            Text("OK")
-                        }
+                        TextButton(onClick = { onClearNameError() }) { Text("OK") }
+                    }
+                )
+            }
+
+            val valueErrorState by valueError.collectAsState()
+            if (valueErrorState) {
+                AlertDialog(
+                    onDismissRequest = { onClearValueError() },
+                    title = { Text("Invalid grade value") },
+                    text = { Text("Please enter a valid number between 0 and 10.") },
+                    confirmButton = {
+                        TextButton(onClick = { onClearValueError() }) { Text("OK") }
                     }
                 )
             }

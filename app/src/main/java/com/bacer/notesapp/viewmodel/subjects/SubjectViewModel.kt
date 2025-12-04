@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class SubjectViewModel(private val repo: SubjectRepository) : ViewModel() {
+class SubjectViewModel(private val repository: SubjectRepository) : ViewModel() {
 
     // Load subjects
     private val _subjects = MutableStateFlow<List<SubjectEntity>>(emptyList())
@@ -17,7 +17,7 @@ class SubjectViewModel(private val repo: SubjectRepository) : ViewModel() {
 
     fun loadSubjects() {
         viewModelScope.launch {
-            _subjects.value = repo.getSubjects()
+            _subjects.value = repository.getSubjects()
         }
     }
     // ----- Load subjects
@@ -37,17 +37,15 @@ class SubjectViewModel(private val repo: SubjectRepository) : ViewModel() {
                 return@launch
             }
 
-            // Get the subjects that already exist
-            val currentSubjects = repo.getSubjects()
-
-            // Check the names of the subjects so that the new subject's name doesn't already exist
+            // Get the subjects that already exist and check their names so the new subject has a unique name
+            val currentSubjects = repository.getSubjects()
             if (currentSubjects.any { it.name.equals(name, ignoreCase = true) }) {
                 _nameError.value = true
                 return@launch
             }
 
             // Add a new subject
-            repo.insertSubject(name)
+            repository.insertSubject(name)
             loadSubjects()
         }
     }
@@ -60,7 +58,7 @@ class SubjectViewModel(private val repo: SubjectRepository) : ViewModel() {
     // Delete subject
     fun deleteSubject(subject: SubjectEntity) {
         viewModelScope.launch {
-            repo.deleteSubject(subject)
+            repository.deleteSubject(subject)
             loadSubjects()
         }
     }
@@ -68,7 +66,7 @@ class SubjectViewModel(private val repo: SubjectRepository) : ViewModel() {
 
     // Get subject by ID
     fun getSubjectById(id: Int): Flow<SubjectEntity?> {
-        return repo.getSubjectById(id)
+        return repository.getSubjectById(id)
     }
     // ----- Get subject by ID
 

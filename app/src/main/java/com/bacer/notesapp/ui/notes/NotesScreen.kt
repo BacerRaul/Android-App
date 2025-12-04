@@ -89,6 +89,7 @@ fun NotesScreen(
         }
     // -----
 
+    // Photos
     val capturedPhotos = navController.currentBackStackEntry
         ?.savedStateHandle
         ?.getStateFlow<List<String>?>("captured_photos", null)
@@ -98,6 +99,11 @@ fun NotesScreen(
         ?.savedStateHandle
         ?.getStateFlow<Boolean?>("should_open_dialog", null)
         ?.collectAsState()
+    // -----
+
+    // Used in checking for name duplicates
+    val currentNotes by notes.collectAsState()
+    // -----
 
     LaunchedEffect(capturedPhotos?.value, shouldOpenDialog?.value) {
         capturedPhotos?.value?.let { paths ->
@@ -111,7 +117,6 @@ fun NotesScreen(
             shouldOpenDialog?.value?.let { open ->
                 if (open) {
                     showAddDialog = true
-                    // Remove the flag so the dialog doesn't re-open if the screen is recomposed later
                     navController.currentBackStackEntry
                         ?.savedStateHandle
                         ?.remove<Boolean>("should_open_dialog")
@@ -366,8 +371,23 @@ fun NotesScreen(
 
                     confirmButton = {
                         TextButton(onClick = {
+                            val cleanName = newNoteName.trim()
+
+                            if (cleanName.isEmpty()) {
+                                onClearNameError()
+                                onAddNote("", emptyList())
+                                return@TextButton
+                            }
+
+                            if (currentNotes.any { it.name.equals(cleanName, ignoreCase = true) }) {
+                                onClearNameError()
+                                onAddNote(cleanName, emptyList())
+                                return@TextButton
+                            }
+
                             if (selectedImages.isEmpty()) {
                                 onClearImageError()
+                                onAddNote(cleanName, emptyList())
                                 return@TextButton
                             }
 
@@ -383,7 +403,7 @@ fun NotesScreen(
                             finalStoredPaths.addAll(cameraPaths)
 
                             onAddNote(
-                                if (newNoteName.trim().isEmpty()) "Note ${System.currentTimeMillis()}" else newNoteName.trim(),
+                                cleanName,
                                 finalStoredPaths
                             )
 

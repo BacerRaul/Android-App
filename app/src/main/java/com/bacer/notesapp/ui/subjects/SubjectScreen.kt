@@ -54,6 +54,10 @@ fun SubjectScreen(
     var expandedSubjectId by remember { mutableStateOf<Int?>(null) }
     // -----
 
+    // Used in checking for name duplicates
+    val currentSubjects by subjects.collectAsState()
+    // -----
+
     // Screen
     SubjectGradientBackground {
         Scaffold(
@@ -221,6 +225,20 @@ fun SubjectScreen(
                     },
                     confirmButton = {
                         TextButton(onClick = {
+                            val cleanName = newSubjectName.trim()
+
+                            if (cleanName.isEmpty()) {
+                                onClearNameError()
+                                onAddSubject("")
+                                return@TextButton
+                            }
+
+                            if (currentSubjects.any { it.name.equals(cleanName, ignoreCase = true) }) {
+                                onClearNameError()
+                                onAddSubject(cleanName)
+                                return@TextButton
+                            }
+
                             onAddSubject(newSubjectName)
                             newSubjectName = ""
                             showAddDialog = false

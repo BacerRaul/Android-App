@@ -5,6 +5,7 @@ plugins {
 
     // ROOM
     id("kotlin-kapt")
+    // ----- ROOM
 }
 
 android {
@@ -41,6 +42,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -78,12 +80,21 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.5.0")
     // ----- NOTE CONTENT
 
+    // CAMERA
     implementation("androidx.camera:camera-core:1.4.0")
     implementation("androidx.camera:camera-camera2:1.4.0")
     implementation("androidx.camera:camera-lifecycle:1.4.0")
     implementation("androidx.camera:camera-view:1.4.0")
     implementation("androidx.camera:camera-video:1.4.0")
     implementation("androidx.camera:camera-mlkit-vision:1.4.0")
+    // ----- CAMERA
 
-
+    // AI
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.squareup.retrofit2:converter-moshi:2.11.0")
+    implementation("com.squareup.moshi:moshi-kotlin:1.15.1")
+    implementation("com.squareup.moshi:moshi-kotlin:1.15.1")
+    kapt("com.squareup.moshi:moshi-kotlin-codegen:1.15.1")
+    // ----- AI
 }

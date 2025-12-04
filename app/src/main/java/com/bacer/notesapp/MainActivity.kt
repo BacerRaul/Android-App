@@ -36,7 +36,7 @@ import com.bacer.notesapp.viewmodel.aiassistant.AIAssistantViewModelFactory
 
 class MainActivity : ComponentActivity() {
 
-    // ----- ViewModels (singletons for the whole app) -----
+    // ----- ViewModels -----
     private val subjectViewModel: SubjectViewModel by viewModels {
         SubjectViewModelFactory(
             SubjectRepository(DatabaseInstance.getDatabase(this).subjectDao())
@@ -71,7 +71,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // Load subjects once (the list is a StateFlow, UI will react automatically)
+        // Load subjects
         subjectViewModel.loadSubjects()
 
         setContent {
@@ -132,7 +132,10 @@ class MainActivity : ComponentActivity() {
                             },
 
                             nameError = gradeViewModel.nameError,
-                            onClearNameError = { gradeViewModel.clearNameError() }
+                            valueError = gradeViewModel.valueError,
+
+                            onClearNameError = { gradeViewModel.clearNameError() },
+                            onClearValueError = { gradeViewModel.clearValueError() }
                         )
                     }
 
@@ -223,9 +226,14 @@ class MainActivity : ComponentActivity() {
                         AIAssistantScreen(
                             subjectName = subject?.name ?: "Subject",
                             noteName = note?.name ?: "AI Assistant",
-                            onBack = { navController.popBackStack() },
+                            onBack = {
+                                navController.popBackStack()
+                                aiAssistantViewModel.clearAnswerAndError() },
                             onSubmitQuestion = { question ->
-                                aiAssistantViewModel.askQuestion(question)
+                                aiAssistantViewModel.askQuestion(
+                                    question = question,
+                                    imagePaths = note?.imageUris ?: emptyList()
+                                )
                             },
                             isLoading = aiAssistantViewModel.isLoading.collectAsState().value,
                             answer = aiAssistantViewModel.answer.collectAsState().value,
