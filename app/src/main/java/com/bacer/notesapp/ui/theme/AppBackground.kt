@@ -94,46 +94,6 @@ fun GradeGradientBackground(content: @Composable () -> Unit) {
 }
 
 @Composable
-fun AIAssistantGradientBackground(content: @Composable () -> Unit) {
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        // Gradient
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            // Top
-                            Color(0xFF003D28),
-                            Color(0xFF007A4A),
-                            Color(0xFF00B36F),
-                            Color(0xFF00B36F),
-                            Color(0xFF007A4A),
-                            Color(0xFF003D28)
-                            // Bottom
-                        )
-                    )
-                )
-        )
-        // ----- Gradient
-
-        // Image
-        Image(
-            painter = painterResource(id = R.drawable.lines),
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop,
-            alpha = 0.12f // Transparency
-        )
-        // ----- Image
-
-        content()
-    }
-}
-
-@Composable
 fun NotesGradientBackground(content: @Composable () -> Unit) {
     Box(
         modifier = Modifier.fillMaxSize()
@@ -173,3 +133,42 @@ fun NotesGradientBackground(content: @Composable () -> Unit) {
     }
 }
 
+@Composable
+fun AIAssistantGradientBackground(content: @Composable () -> Unit) {
+    Box(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        // Gradient
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            // Top
+                            Color(0xFF001F0D),
+                            Color(0xFF003A1C),
+                            Color(0xFF006128),
+                            Color(0xFF006128),
+                            Color(0xFF003A1C),
+                            Color(0xFF001F0D),
+                            // Bottom
+                        )
+                    )
+                )
+        )
+        // ----- Gradient
+
+        // Image
+        Image(
+            painter = painterResource(id = R.drawable.lines),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop,
+            alpha = 0.12f // Transparency
+        )
+        // ----- Image
+
+        content()
+    }
+}

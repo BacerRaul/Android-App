@@ -25,11 +25,14 @@ import com.bacer.notesapp.viewmodel.grades.GradeViewModel
 import com.bacer.notesapp.viewmodel.grades.GradeViewModelFactory
 import com.bacer.notesapp.viewmodel.notes.NoteViewModelFactory
 import com.bacer.notesapp.data.notes.NoteRepository
+import com.bacer.notesapp.ui.aiassistant.AIAssistantScreen
 import com.bacer.notesapp.ui.notes.CameraScreen
 import com.bacer.notesapp.ui.notes.NoteContentScreen
 import com.bacer.notesapp.viewmodel.notes.NoteViewModel
 import com.bacer.notesapp.viewmodel.notes.NoteContentViewModel
 import com.bacer.notesapp.viewmodel.notes.NoteContentViewModelFactory
+import com.bacer.notesapp.viewmodel.aiassistant.AIAssistantViewModel
+import com.bacer.notesapp.viewmodel.aiassistant.AIAssistantViewModelFactory
 
 class MainActivity : ComponentActivity() {
 
@@ -56,6 +59,10 @@ class MainActivity : ComponentActivity() {
         NoteContentViewModelFactory(
             NoteRepository(DatabaseInstance.getDatabase(this).noteDao())
         )
+    }
+
+    private val aiAssistantViewModel: AIAssistantViewModel by viewModels {
+        AIAssistantViewModelFactory()
     }
     // ----------------------------------------------------
 
@@ -164,7 +171,12 @@ class MainActivity : ComponentActivity() {
                             },
 
                             onOpenCamera = {
-                                cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA)                            }
+                                cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA)
+                            },
+
+                            onAssistantClick = { noteId ->
+                                navController.navigate("aiAssistant/$subjectId/$noteId")
+                            },
                         )
                     }
 
@@ -193,6 +205,31 @@ class MainActivity : ComponentActivity() {
                         CameraScreen(
                             navController = navController,
                             onCancel = { navController.popBackStack() }
+                        )
+                    }
+
+                    // ---------- AI Assistant ----------
+                    composable("aiAssistant/{subjectId}/{noteId}") { backStackEntry ->
+                        val subjectId = backStackEntry.arguments?.getString("subjectId")!!.toInt()
+                        val noteId = backStackEntry.arguments?.getString("noteId")!!.toInt()
+
+                        LaunchedEffect(noteId) {
+                            noteContentViewModel.loadNote(noteId)
+                        }
+
+                        val subject by subjectViewModel.getSubjectById(subjectId).collectAsState(initial = null)
+                        val note by noteContentViewModel.note.collectAsState()
+
+                        AIAssistantScreen(
+                            subjectName = subject?.name ?: "Subject",
+                            noteName = note?.name ?: "AI Assistant",
+                            onBack = { navController.popBackStack() },
+                            onSubmitQuestion = { question ->
+                                aiAssistantViewModel.askQuestion(question)
+                            },
+                            isLoading = aiAssistantViewModel.isLoading.collectAsState().value,
+                            answer = aiAssistantViewModel.answer.collectAsState().value,
+                            errorMessage = aiAssistantViewModel.errorMessage.collectAsState().value
                         )
                     }
 
