@@ -55,6 +55,17 @@ fun AIAssistantScreen(
 
             var question by remember { mutableStateOf("") }
 
+            // Shake
+            LaunchedEffect(Unit) {
+                com.bacer.notesapp.utils.ShakeEventsBus.shakeFlow.collect {
+                    if (question.trim().isNotEmpty() && !isLoading) {
+                        onSubmitQuestion(question.trim())
+                    }
+                }
+            }
+            // ----- Shake
+
+
             Column(
                 modifier = Modifier
                     .padding(padding)

@@ -33,6 +33,13 @@ import com.bacer.notesapp.viewmodel.notes.NoteContentViewModel
 import com.bacer.notesapp.viewmodel.notes.NoteContentViewModelFactory
 import com.bacer.notesapp.viewmodel.aiassistant.AIAssistantViewModel
 import com.bacer.notesapp.viewmodel.aiassistant.AIAssistantViewModelFactory
+import android.hardware.Sensor
+import android.hardware.SensorManager
+import com.bacer.notesapp.utils.ShakeDetector
+import com.bacer.notesapp.utils.ShakeEventsBus
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+
 
 class MainActivity : ComponentActivity() {
 
@@ -67,12 +74,33 @@ class MainActivity : ComponentActivity() {
     // ----------------------------------------------------
 
 
+
+    // ----- Shake -----
+    private lateinit var sensorManager: SensorManager
+    private var accelerometer: Sensor? = null
+    private var shakeDetector: ShakeDetector? = null
+    // ----------------------------------------------------
+
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
         // Load subjects
         subjectViewModel.loadSubjects()
+
+        // Shake variables
+        sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
+        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+
+        // When a shake happens, notify Compose
+        shakeDetector = ShakeDetector {
+            lifecycleScope.launch {
+                ShakeEventsBus.sendShakeEvent()
+            }
+        }
+
 
         setContent {
             NotesAppTheme {
@@ -245,4 +273,23 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    // Shake functionality
+    override fun onResume() {
+        super.onResume()
+        accelerometer?.also {
+            sensorManager.registerListener(
+                shakeDetector,
+                it,
+                SensorManager.SENSOR_DELAY_UI
+            )
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        sensorManager.unregisterListener(shakeDetector)
+    }
+    // ----- Shake functionality
+
 }
