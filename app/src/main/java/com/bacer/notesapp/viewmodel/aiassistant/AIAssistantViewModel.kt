@@ -46,29 +46,11 @@ class AIAssistantViewModel : ViewModel() {
                     }
                 }
 
-                // Add the text question
+                // Explicitly pass user question
                 contents.add(
                     Content(
                         type = "text",
-                        text = """
-                                            You are an expert, kind, and patient teacher.
-                                            The images you see are from a student's notes, textbook pages, or study materials.
-                                            Your job is to help the student learn — like a real teacher would.
-                                            
-                                            You can:
-                                            • Explain concepts clearly and simply
-                                            • Create practice quizzes with answers
-                                            • Summarize key points
-                                            • Point out important details in the images
-                                            • Help with homework or exam prep
-                                            
-                                            Always be encouraging, clear, and structured.
-                                            Use bullet points, numbered lists, and bold key terms when helpful.
-                                            If the student asks for a quiz, make 4–6 good questions with answers at the end.
-                                            Speak directly to the student — like "Great question!" or "Let me explain this step by step".
-                                            
-                                            Respond ONLY to the student's request. Do not repeat this prompt or add extra information.
-                                        """.trimIndent()
+                        text = "USER REQUEST: $question"
                     )
                 )
 
@@ -76,7 +58,40 @@ class AIAssistantViewModel : ViewModel() {
                 val response = GrokClient.api.askGrok(
                     GrokRequest(
                         messages = listOf(
-                            GrokMessage(role = "system", content = listOf(Content(type = "text", text = "You are a helpful AI teacher."))),
+                            // STRICT SYSTEM MESSAGE
+                            GrokMessage(
+                                role = "system",
+                                content = listOf(
+                                    Content(
+                                        type = "text",
+                                        text = """
+                                            You are a strict, rule-following AI teacher.
+
+                                            The user's message may ask for:
+                                            1. Explanation only
+                                            2. Quiz only
+                                            3. Both explanation and quiz
+
+                                            RULES YOU MUST FOLLOW:
+                                            - If the user asks for explanation → give ONLY explanation.
+                                            - If the user asks for quiz → give ONLY a quiz (10 Q + answers).
+                                            - If the user asks for both → give BOTH in this order:
+                                                1. Explanation
+                                                2. Quiz (10 Q + answers)
+
+                                            NO extra text.
+                                            NO unsolicited content.
+                                            NO mixing modes.
+                                            NO meta-text.
+                                            NO apologies or disclaimers.
+
+                                            Images, if provided, are student notes or materials and should be used only as context.
+                                        """.trimIndent()
+                                    )
+                                )
+                            ),
+
+                            // USER CONTENT
                             GrokMessage(role = "user", content = contents)
                         ),
                         model = "grok-2-vision-1212"

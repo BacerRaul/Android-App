@@ -135,43 +135,79 @@ fun AIAssistantScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                Card(
-                    onClick = {
-                        if (question.trim().isNotEmpty() && !isLoading) {
-                            onSubmitQuestion(question.trim())
-                            question = ""
-                        }
-                    },
-                    enabled = question.trim().isNotEmpty() && !isLoading,
-                    colors = CardDefaults.cardColors(
-                        containerColor = if (question.trim().isNotEmpty())
-                            Color.White.copy(alpha = 0.30f)
-                        else
-                            Color.White.copy(alpha = 0.15f)
-                    ),
-                    border = BorderStroke(2.dp, Color.White.copy(alpha = 0.70f)),
-                    shape = MaterialTheme.shapes.medium,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (isLoading) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                CircularProgressIndicator(
-                                    color = Color.White,
-                                    modifier = Modifier.size(24.dp),
-                                    strokeWidth = 3.dp
-                                )
-                                Spacer(Modifier.width(12.dp))
-                                Text("Thinking...", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Medium)
+
+                    // LEFT: ASK BUTTON
+                    Card(
+                        onClick = {
+                            if (question.trim().isNotEmpty() && !isLoading) {
+                                onSubmitQuestion(question.trim())
                             }
-                        } else {
+                        },
+                        enabled = question.trim().isNotEmpty() && !isLoading,
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (question.trim().isNotEmpty())
+                                Color.White.copy(alpha = 0.30f)
+                            else
+                                Color.White.copy(alpha = 0.15f)
+                        ),
+                        border = BorderStroke(2.dp, Color.White.copy(alpha = 0.70f)),
+                        shape = MaterialTheme.shapes.medium,
+                        modifier = Modifier
+                            .weight(0.7f)
+                            .height(56.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (isLoading) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    CircularProgressIndicator(
+                                        color = Color.White,
+                                        modifier = Modifier.size(24.dp),
+                                        strokeWidth = 3.dp
+                                    )
+                                    Spacer(Modifier.width(12.dp))
+                                    Text(
+                                        "Thinking...",
+                                        color = Color.White,
+                                        fontSize = 18.sp,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
+                            } else {
+                                Text(
+                                    text = "Ask",
+                                    color = Color.White,
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        }
+                    }
+
+                    // RIGHT: CLEAR BUTTON
+                    Card(
+                        onClick = { question = "" },
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color.White.copy(alpha = 0.20f)
+                        ),
+                        border = BorderStroke(2.dp, Color.White.copy(alpha = 0.70f)),
+                        shape = MaterialTheme.shapes.medium,
+                        modifier = Modifier
+                            .weight(0.3f)
+                            .height(56.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
                             Text(
-                                text = "Ask",
+                                text = "Clear",
                                 color = Color.White,
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Medium
@@ -180,13 +216,10 @@ fun AIAssistantScreen(
                     }
                 }
 
+
                 Spacer(modifier = Modifier.height(32.dp))
 
-                if (isLoading) {
-                    Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = Color.White)
-                    }
-                } else if (errorMessage != null) {
+                if (errorMessage != null) {
                     Card(
                         colors = CardDefaults.cardColors(containerColor = Color(0xFF8B0000).copy(alpha = 0.3f)),
                         border = BorderStroke(2.dp, Color(0xFFFF6B6B)),
