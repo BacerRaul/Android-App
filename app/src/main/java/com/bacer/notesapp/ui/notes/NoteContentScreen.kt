@@ -25,6 +25,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import com.bacer.notesapp.data.notes.NoteEntity
@@ -40,6 +41,10 @@ fun NoteContentScreen(
     imageUris: List<String>,
     onBack: () -> Unit,
 ) {
+
+    // Image view
+    var selectedImage by remember { mutableStateOf<String?>(null) }
+    // ----- Image view
 
     // Screen
     NotesGradientBackground {
@@ -124,7 +129,14 @@ fun NoteContentScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(250.dp)
-                                    .padding(8.dp),
+                                    .padding(8.dp)
+                                    .pointerInput(Unit) {
+                                        detectTapGestures(
+                                            onTap = {
+                                                selectedImage = uriString
+                                            }
+                                        )
+                                    },
                                 contentScale = ContentScale.Crop
                             )
                         }
@@ -135,6 +147,30 @@ fun NoteContentScreen(
 
             }
         }
+
+        // Fullscreen image viewer
+        if (selectedImage != null) {
+            Dialog(onDismissRequest = { selectedImage = null }) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    AsyncImage(
+                        model = Uri.fromFile(File(selectedImage!!)),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .fillMaxHeight()
+                            .clip(MaterialTheme.shapes.medium),
+                        contentScale = ContentScale.Fit
+                    )
+                }
+            }
+        }
+        // ----- Fullscreen image viewer
+
     }
     // ----- Screen
 
